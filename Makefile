@@ -1,4 +1,4 @@
-.PHONY: help fmt vet dl-modules release pkg test clean
+.PHONY: help checkfmt fmt vet dl-modules release pkg test clean
 
 .DEFAULT_GOAL := help
 
@@ -28,6 +28,14 @@ GOARCH = amd64
 # For use by humans
 all: fmt vet test
 
+checkfmt: ## Verifies that all files pass `go fmt`
+		@echo "+ $@"
+ifdef UNFMT_FILES
+		@echo "Unformatted files found; please run 'make fmt' to fix:"
+		@echo "$(UNFMT_FILES)"
+		@exit 1
+endif
+
 fmt: ## Verifies that all files pass `go fmt`
 		@echo "+ $@"
 		gofmt -l -w $(GOFMT_FILES)
@@ -35,6 +43,10 @@ fmt: ## Verifies that all files pass `go fmt`
 vet: ## Runs go vet on all non-vendor source code
 		@echo "+ $@"
 		go vet $(GO_SRC)
+
+lint: ## Runs golangci-lint
+		@echo "+ $@"
+		golangci-lint run -v
 
 dl-modules: ## Downloads Go modules
 		@echo "+ $@"
