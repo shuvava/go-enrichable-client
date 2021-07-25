@@ -18,8 +18,8 @@ before_script:
 before_install:
   - go get -u golang.org/x/lint/golint
 script:
-  - test -z "`make checkfmt`"
-  - test -z "`make lint`"
-  - test -z "`make test`"
+  - make checkfmt
+  - make lint
+  - make test
   - $GOPATH/bin/goveralls -service=travis-ci
   - cd examples/simple-client && go build -o simple_client && ./http_breaker
