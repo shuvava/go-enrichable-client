@@ -36,7 +36,7 @@ func TestRetryableMiddleware(t *testing.T) {
 		)
 		m := createMock(url, wantStatusCode, wantBody, -1, 0)
 		richClient := client.NewClient(m.mock)
-		richClient.Use(Retry())
+		richClient.Use(RetryWithConfig(newRetryConfig()))
 		c := richClient.Client
 
 		response, err := c.Get(url)
@@ -54,7 +54,7 @@ func TestRetryableMiddleware(t *testing.T) {
 		)
 		m := createMock(url, wantStatusCode, wantBody, -1, 0)
 		richClient := client.NewClient(m.mock)
-		richClient.Use(Retry())
+		richClient.Use(RetryWithConfig(newRetryConfig()))
 		c := richClient.Client
 
 		response, err := c.Get(url)
@@ -72,7 +72,7 @@ func TestRetryableMiddleware(t *testing.T) {
 		)
 		m := createMock(url, wantStatusCode, wantBody, 2, http.StatusInternalServerError)
 		richClient := client.NewClient(m.mock)
-		richClient.Use(Retry())
+		richClient.Use(RetryWithConfig(newRetryConfig()))
 		c := richClient.Client
 
 		response, err := c.Get(url)
@@ -127,4 +127,14 @@ func createMock(url string, statusCode int, body string, errCnt, errCode int) *R
 			}, nil
 		})
 	return m
+}
+
+func newRetryConfig() RetryConfig {
+	return RetryConfig{
+		RetryWaitMin: 0,
+		RetryWaitMax: 0,
+		RetryMax:     defaultRetryMax,
+		CheckRetry:   DefaultRetryPolicy,
+		Backoff:      DefaultBackoff,
+	}
 }
