@@ -15,7 +15,7 @@ BUILT_ON := $(shell date -u '+%Y-%m-%d')
 # Set Go vars
 GO_SRC = $(shell go list ./... | grep -v vendor)
 GOFMT_FILES = $$(find . -name '*.go' | grep -v vendor)
-GO_TEST_FLAGS = -v -covermode=count -coverprofile=coverage.out
+GO_TEST_FLAGS = -v -covermode=atomic -coverprofile=coverage.out
 CGO_ENABLED = 0
 # List all files that haven't passed gofmt
 UNFMT_FILES := $(shell gofmt -l $(GOFMT_FILES))
@@ -67,7 +67,7 @@ pkg: release ## Creates the tarball package
 
 test: dl-modules ## Runs the Go unit tests with -short
 		@echo "+ $@"
-		go test -short $(GO_TEST_FLAGS) $(GO_SRC)
+		go test -v -race $(GO_TEST_FLAGS) $(GO_SRC)
 
 clean: ## Removes all build and test output
 		@echo "+ $@"
