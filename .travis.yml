@@ -21,5 +21,4 @@ script:
   - make checkfmt
   - make lint
   - make test
-  - $GOPATH/bin/goveralls -service=travis-ci
-  - cd examples/simple-client && go build -o simple_client && ./http_breaker
+  - cd examples/simple-client && go build -o simple_client
