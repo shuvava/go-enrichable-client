@@ -1,13 +1,10 @@
-package retryablehttp
+package client
 
 import (
 	"errors"
 	"fmt"
 	"net/http"
 )
-
-// Responder is callback that receive and http request and return a mocked response.
-type Responder func(*http.Request) (*http.Response, error)
 
 var (
 	// ErrNoResponderFound is returned when no responders are found for a given HTTP method and URL.

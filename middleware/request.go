@@ -1,4 +1,4 @@
-package retryablehttp
+package middleware
 
 import (
 	"bytes"

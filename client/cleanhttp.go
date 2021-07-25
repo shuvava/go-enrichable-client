@@ -1,4 +1,4 @@
-package retryablehttp
+package client
 
 import (
 	"net"
@@ -6,6 +6,9 @@ import (
 	"runtime"
 	"time"
 )
+
+// Responder is callback that receive and http request and return a response.
+type Responder func(*http.Request) (*http.Response, error)
 
 // DefaultTransport returns a new http.Transport with similar default values to
 // http.DefaultTransport, but with idle connections and keepalives disabled.

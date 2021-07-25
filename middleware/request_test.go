@@ -1,24 +1,10 @@
-package retryablehttp
+package middleware
 
 import (
 	"bytes"
-	"fmt"
-	"io/ioutil"
 	"net/http"
-	"path/filepath"
-	"reflect"
-	"runtime"
 	"testing"
 )
-
-// equals fails the test if exp is not equal to act.
-func equals(tb testing.TB, exp, act interface{}) {
-	if !reflect.DeepEqual(exp, act) {
-		_, file, line, _ := runtime.Caller(1)
-		fmt.Printf("\033[31m%s:%d:\n\n\texp: %#v\n\n\tgot: %#v\033[39m\n\n", filepath.Base(file), line, exp, act)
-		tb.FailNow()
-	}
-}
 
 func TestRequest(t *testing.T) {
 	createRequest := func(t testing.TB) *Request {
@@ -99,42 +85,6 @@ func TestFromRequest(t *testing.T) {
 		_, req := createRequest(t)
 		if req.ContentLength != 2 {
 			t.Fatalf("bad ContentLength: %d", req.ContentLength)
-		}
-	})
-}
-
-func TestSuccessfulResponse(t *testing.T) {
-	t.Run("Successful GET of mocked request", func(t *testing.T) {
-		mock := NewMockTransport(true)
-		url := "https://www.example.com"
-		wantStatusCode := http.StatusOK
-		wantBody := `OK`
-		mock.RegisterResponder(http.MethodGet, url,
-			func(request *http.Request) (*http.Response, error) {
-				return &http.Response{
-					StatusCode: wantStatusCode,
-					// Send response to be tested
-					Body: ioutil.NopCloser(bytes.NewBufferString(wantBody)),
-					// Must be set to non-nil value or it panics
-					Header: make(http.Header),
-				}, nil
-			})
-		client := NewClient(mock)
-		response, err := client.Get(url)
-		if err != nil {
-			t.Fatalf("did not expect an error but got one %v", err)
-		}
-		if response.StatusCode != wantStatusCode {
-			t.Errorf("got %q, wantStatusCode %q", response.StatusCode, wantStatusCode)
-		}
-		defer response.Body.Close()
-		body, err := ioutil.ReadAll(response.Body)
-		if err != nil {
-			t.Fatalf("did not expect an error but got one %v", err)
-		}
-		bodyString := string(body)
-		if bodyString != wantBody {
-			t.Errorf("got %q, wantStatusCode %q", response.StatusCode, wantStatusCode)
 		}
 	})
 }
