@@ -28,7 +28,7 @@ func prettyPrint(i interface{}) string {
 
 func main() {
 	url := "https://reqres.in/api/users"
-	c := client.DefaultClient()
+	c := client.DefaultHTTPClient()
 	resp, err := c.Get(url)
 	if err != nil {
 		fmt.Print(err.Error())

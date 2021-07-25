@@ -17,7 +17,7 @@ func TestRetryableMiddleware(t *testing.T) {
 			wantBody       = `error`
 		)
 		m := createMock(url, wantStatusCode, wantBody, -1, 0)
-		richClient := client.NewHTTPClient(m.mock)
+		richClient := client.NewClient(m.mock)
 		richClient.Use(Retry())
 		c := richClient.Client
 
@@ -35,7 +35,7 @@ func TestRetryableMiddleware(t *testing.T) {
 			wantBody       = `error`
 		)
 		m := createMock(url, wantStatusCode, wantBody, -1, 0)
-		richClient := client.NewHTTPClient(m.mock)
+		richClient := client.NewClient(m.mock)
 		richClient.Use(Retry())
 		c := richClient.Client
 
@@ -53,7 +53,7 @@ func TestRetryableMiddleware(t *testing.T) {
 			wantBody       = `error`
 		)
 		m := createMock(url, wantStatusCode, wantBody, -1, 0)
-		richClient := client.NewHTTPClient(m.mock)
+		richClient := client.NewClient(m.mock)
 		richClient.Use(Retry())
 		c := richClient.Client
 
@@ -71,7 +71,7 @@ func TestRetryableMiddleware(t *testing.T) {
 			wantBody       = `error`
 		)
 		m := createMock(url, wantStatusCode, wantBody, 2, http.StatusInternalServerError)
-		richClient := client.NewHTTPClient(m.mock)
+		richClient := client.NewClient(m.mock)
 		richClient.Use(Retry())
 		c := richClient.Client
 

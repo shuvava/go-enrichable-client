@@ -17,7 +17,7 @@ func TestWithOutMiddleware(t *testing.T) {
 	mock := createMock(url, wantStatusCode, wantBody)
 
 	t.Run("Should successfully process request without middleware", func(t *testing.T) {
-		richClient := NewHTTPClient(mock)
+		richClient := NewClient(mock)
 		client := richClient.Client
 		response, err := client.Get(url)
 		assertResponse(t, response, err)
@@ -26,7 +26,7 @@ func TestWithOutMiddleware(t *testing.T) {
 
 func TestMiddleware(t *testing.T) {
 	mock := createMock(url, wantStatusCode, wantBody)
-	richClient := NewHTTPClient(mock)
+	richClient := NewClient(mock)
 	richClient.Use(createMiddleware(http.MethodHead, http.StatusConflict))
 	client := richClient.Client
 
@@ -47,7 +47,7 @@ func TestMiddleware(t *testing.T) {
 
 func TestMultipleMiddleware(t *testing.T) {
 	mock := createMock(url, wantStatusCode, wantBody)
-	richClient := NewHTTPClient(mock)
+	richClient := NewClient(mock)
 	richClient.Use(createMiddleware(http.MethodHead, http.StatusBadGateway))
 	richClient.Use(createMiddleware(http.MethodHead, http.StatusConflict))
 	client := richClient.Client

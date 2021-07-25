@@ -23,7 +23,7 @@ func TestSuccessfulResponse(t *testing.T) {
 					Header: make(http.Header),
 				}, nil
 			})
-		client := NewClient(mock)
+		client := NewHTTPClient(mock)
 		response, err := client.Get(url)
 		if err != nil {
 			t.Fatalf("did not expect an error but got one %v", err)
