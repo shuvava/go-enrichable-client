@@ -1,7 +1,7 @@
 # Enrichable http client
 
 [![GoDoc](https://godoc.org/github.com/shuvava/go-enrichable-client?status.svg)](http://godoc.org/github.com/shuvava/go-enrichable-client)
-[![Build Status](https://travis-ci.org/shuvava/go-enrichable-client.svg?branch=master)](https://travis-ci.org/shuvava/go-enrichable-client)
+[![Build Status](https://travis-ci.com/shuvava/go-enrichable-client.svg?branch=master)](https://travis-ci.com/shuvava/go-enrichable-client)
 [![Coverage Status](https://coveralls.io/repos/github/shuvava/go-enrichable-client/badge.svg?branch=master)](https://coveralls.io/github/shuvava/go-enrichable-client?branch=master)
 
 the `go-enrichable-client` package is wrapper over the standard `net/http` client library 
