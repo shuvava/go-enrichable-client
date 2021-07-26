@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 
 	"github.com/shuvava/go-enrichable-client/client"
 	"github.com/shuvava/go-enrichable-client/middleware"
@@ -30,24 +29,16 @@ func prettyPrint(i interface{}) string {
 func main() {
 	url := "https://reqres.in/api/users"
 
-	// create enriched client
-	richClient := client.DefaultClient()
+	// create enriched http client
+	c := client.DefaultClient()
 	// add retry middleware
-	richClient.Use(middleware.Retry())
-	// receive reference to http.Client
-	c := richClient.Client
-
-	resp, err := c.Get(url)
-	if err != nil {
-		fmt.Print(err.Error())
-	}
-	defer resp.Body.Close()
-	bodyBytes, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		fmt.Print(err.Error())
-	}
+	c.Use(middleware.Retry())
 	var responseObject Response
-	_ = json.Unmarshal(bodyBytes, &responseObject)
+	// make GET request and deserialize response body
+	err := c.Get(url, &responseObject)
+	if err != nil {
+		fmt.Print(err.Error())
+	}
 	s := prettyPrint(responseObject)
 	fmt.Printf("API Response as struct %s\n", s)
 }

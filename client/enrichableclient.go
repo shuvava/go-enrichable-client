@@ -1,6 +1,9 @@
 package client
 
 import (
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
 	"net/http"
 )
 
@@ -47,6 +50,21 @@ func (c *Client) Use(middleware ...MiddlewareFunc) {
 	c.middleware = append(c.middleware, middleware...)
 }
 
+// Get is a convenience helper for doing simple GET requests.
+func (c *Client) Get(url string, response interface{}) error {
+	resp, err := c.Client.Get(url)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	bodyBytes, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+	err = json.Unmarshal(bodyBytes, &response)
+	return err
+}
+
 // RoundTrip executes a single HTTP transaction, returning a Response for the provided Request
 func (c *Client) RoundTrip(req *http.Request) (*http.Response, error) {
 	h := applyMiddleware(c.Client, c.defaultResponder, c.middleware...)
@@ -58,4 +76,16 @@ func applyMiddleware(c *http.Client, h Responder, middleware ...MiddlewareFunc) 
 		h = middleware[i](c, h)
 	}
 	return h
+}
+
+func assertStatusCode(resp *http.Response) error {
+	if resp == nil {
+		return nil
+	}
+	if (resp.StatusCode >= http.StatusOK && resp.StatusCode <= 299) ||
+		resp.StatusCode == http.StatusNotFound ||
+		resp.StatusCode == http.StatusNotModified {
+		return nil
+	}
+	return fmt.Errorf("unexpected HTTP status %s", resp.Status)
 }
