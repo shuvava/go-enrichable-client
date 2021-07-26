@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 )
 
@@ -13,6 +14,12 @@ const jsonContentType = "application/json"
 
 // ReaderFunc is the type of function that can be given natively to NewRequest
 type ReaderFunc func() (io.Reader, error)
+
+// LenReader is an interface implemented by many in-memory io.Reader's. Used
+// for automatically sending the right Content-Length header when possible.
+type LenReader interface {
+	Len() int
+}
 
 // Request wraps the metadata needed to create HTTP requests.
 type Request struct {
@@ -32,18 +39,88 @@ func (r *Request) WithContext(ctx context.Context) *Request {
 	return r
 }
 
-func getBodyReaderAndContentLength(body interface{}) (ReaderFunc, int64, error) {
-	if body == nil {
+func getBodyReaderAndContentLength(rawBody interface{}) (ReaderFunc, int64, error) {
+	var bodyReader ReaderFunc
+	var contentLength int64
+	switch body := rawBody.(type) {
+	case func() (io.Reader, error):
+		bodyReader = body
+		tmp, err := body()
+		if err != nil {
+			return nil, 0, err
+		}
+		if lr, ok := tmp.(LenReader); ok {
+			contentLength = int64(lr.Len())
+		}
+		if c, ok := tmp.(io.Closer); ok {
+			_ = c.Close()
+		}
+
+	// If a regular byte slice, we can read it over and over via new
+	// readers
+	case []byte:
+		buf := body
+		bodyReader = func() (io.Reader, error) {
+			return bytes.NewReader(buf), nil
+		}
+		contentLength = int64(len(buf))
+
+	// If a bytes.Buffer we can read the underlying byte slice over and
+	// over
+	case *bytes.Buffer:
+		buf := body
+		bodyReader = func() (io.Reader, error) {
+			return bytes.NewReader(buf.Bytes()), nil
+		}
+		contentLength = int64(buf.Len())
+
+		// We prioritize *bytes.Reader here because we don't really want to
+	// deal with it seeking so want it to match here instead of the
+	// io.ReadSeeker case.
+	case *bytes.Reader:
+		buf, err := ioutil.ReadAll(body)
+		if err != nil {
+			return nil, 0, err
+		}
+		bodyReader = func() (io.Reader, error) {
+			return bytes.NewReader(buf), nil
+		}
+		contentLength = int64(len(buf))
+	// Compat case
+	case io.ReadSeeker:
+		raw := body
+		bodyReader = func() (io.Reader, error) {
+			_, err := raw.Seek(0, 0)
+			return ioutil.NopCloser(raw), err
+		}
+		if lr, ok := raw.(LenReader); ok {
+			contentLength = int64(lr.Len())
+		}
+	// Read all in so we can reset
+	case io.Reader:
+		buf, err := ioutil.ReadAll(body)
+		if err != nil {
+			return nil, 0, err
+		}
+		bodyReader = func() (io.Reader, error) {
+			return bytes.NewReader(buf), nil
+		}
+		contentLength = int64(len(buf))
+
+	// No body provided, nothing to do
+	case nil:
 		return nil, 0, nil
+	// json object
+	default:
+		buf, err := json.Marshal(rawBody)
+		if err != nil {
+			return nil, 0, err
+		}
+		bodyReader = func() (io.Reader, error) {
+			return bytes.NewReader(buf), nil
+		}
+		contentLength = int64(len(buf))
 	}
-	buf, err := json.Marshal(body)
-	if err != nil {
-		return nil, 0, err
-	}
-	bodyReader := func() (io.Reader, error) {
-		return bytes.NewReader(buf), nil
-	}
-	contentLength := int64(len(buf))
 
 	return bodyReader, contentLength, nil
 }
