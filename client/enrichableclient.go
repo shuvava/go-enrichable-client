@@ -7,6 +7,12 @@ import (
 	"net/http"
 )
 
+var (
+	// defaultClient is used for performing requests without explicitly making
+	// a new client. It is purposely private to avoid modifications.
+	defaultClient = DefaultClient()
+)
+
 // MiddlewareFunc defines a function to process middleware.
 type MiddlewareFunc func(*http.Client, Responder) Responder
 
@@ -56,13 +62,32 @@ func (c *Client) Get(url string, response interface{}) error {
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
-	bodyBytes, err := ioutil.ReadAll(resp.Body)
+
+	return readResponse(resp, &response)
+}
+
+// Get is a shortcut for doing a GET request without making a new client.
+func Get(url string, response interface{}) error {
+	return defaultClient.Get(url, &response)
+}
+
+// Post is a convenience method for doing simple POST requests.
+func (c *Client) Post(url string, body interface{}, response interface{}) error {
+	req, err := NewHTTPRequest("POST", url, body)
 	if err != nil {
 		return err
 	}
-	err = json.Unmarshal(bodyBytes, &response)
-	return err
+	resp, err := c.Client.Do(req)
+	if err != nil {
+		return err
+	}
+
+	return readResponse(resp, &response)
+}
+
+// Post is a shortcut for doing a POST request without making a new client.
+func Post(url string, body interface{}, response interface{}) error {
+	return defaultClient.Post(url, body, &response)
 }
 
 // RoundTrip executes a single HTTP transaction, returning a Response for the provided Request
@@ -88,4 +113,17 @@ func assertStatusCode(resp *http.Response) error {
 		return nil
 	}
 	return fmt.Errorf("unexpected HTTP status %s", resp.Status)
+}
+
+func readResponse(resp *http.Response, response interface{}) error {
+	if err := assertStatusCode(resp); err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	bodyBytes, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+	err = json.Unmarshal(bodyBytes, &response)
+	return err
 }

@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 
 	"github.com/shuvava/go-enrichable-client/client"
 )
@@ -28,18 +27,12 @@ func prettyPrint(i interface{}) string {
 
 func main() {
 	url := "https://reqres.in/api/users"
-	c := client.DefaultHTTPClient()
-	resp, err := c.Get(url)
-	if err != nil {
-		fmt.Print(err.Error())
-	}
-	defer resp.Body.Close()
-	bodyBytes, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		fmt.Print(err.Error())
-	}
 	var responseObject Response
-	json.Unmarshal(bodyBytes, &responseObject)
+	// make GET request and deserialize response body with using default http client
+	err := client.Get(url, &responseObject)
+	if err != nil {
+		fmt.Print(err.Error())
+	}
 	s := prettyPrint(responseObject)
 	fmt.Printf("API Response as struct %s\n", s)
 	// fmt.Printf("API Response as struct %+v\n", responseObject)

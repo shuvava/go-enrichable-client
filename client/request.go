@@ -1,4 +1,4 @@
-package middleware
+package client
 
 import (
 	"bytes"
@@ -125,6 +125,46 @@ func getBodyReaderAndContentLength(rawBody interface{}) (ReaderFunc, int64, erro
 	return bodyReader, contentLength, nil
 }
 
+func getBodyReaderAndRequest(method, url string, rawBody interface{}) (*http.Request, ReaderFunc, error) {
+	bodyReader, contentLength, err := getBodyReaderAndContentLength(rawBody)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	httpReq, err := http.NewRequest(method, url, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+	httpReq.ContentLength = contentLength
+	if bodyReader != nil {
+		httpReq.Header.Add("Content-Type", fmt.Sprintf("%s; charset=utf-8", jsonContentType))
+	}
+	httpReq.Header.Add("Accept", jsonContentType)
+	return httpReq, bodyReader, nil
+}
+
+// RewindBody rewinds the http body when non-nil.
+func RewindBody(r *http.Request, body ReaderFunc) error {
+	if body != nil {
+		b, err := body()
+		if err != nil {
+			return err
+		}
+
+		if c, ok := b.(io.ReadCloser); ok {
+			r.Body = c
+		} else {
+			r.Body = ioutil.NopCloser(b)
+		}
+	}
+	return nil
+}
+
+// RewindBody rewinds the http body when non-nil.
+func (r *Request) RewindBody() error {
+	return RewindBody(r.Request, r.body)
+}
+
 // FromRequest wraps an http.Request in a retryablehttp.Request
 func FromRequest(r *http.Request) (*Request, error) {
 	bodyReader, _, err := getBodyReaderAndContentLength(r.Body)
@@ -135,22 +175,25 @@ func FromRequest(r *http.Request) (*Request, error) {
 	return &Request{bodyReader, r}, nil
 }
 
-// NewRequest creates a new wrapped request.
-func NewRequest(method, url string, rawBody interface{}) (*Request, error) {
-	bodyReader, contentLength, err := getBodyReaderAndContentLength(rawBody)
+// NewHTTPRequest creates new http.Request with default header
+func NewHTTPRequest(method, url string, rawBody interface{}) (*http.Request, error) {
+	httpReq, bodyReader, err := getBodyReaderAndRequest(method, url, rawBody)
 	if err != nil {
+		return nil, err
+	}
+	if err = RewindBody(httpReq, bodyReader); err != nil {
 		return nil, err
 	}
 
-	httpReq, err := http.NewRequest(method, url, nil)
+	return httpReq, nil
+}
+
+// NewRequest creates a new wrapped request.
+func NewRequest(method, url string, rawBody interface{}) (*Request, error) {
+	httpReq, bodyReader, err := getBodyReaderAndRequest(method, url, rawBody)
 	if err != nil {
 		return nil, err
 	}
-	httpReq.ContentLength = contentLength
-	if bodyReader != nil {
-		httpReq.Header.Add("Content-Type", fmt.Sprintf("%s; charset=utf-8", jsonContentType))
-	}
-	httpReq.Header.Add("Accept", jsonContentType)
 
 	return &Request{bodyReader, httpReq}, nil
 }

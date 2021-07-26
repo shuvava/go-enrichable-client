@@ -23,11 +23,12 @@ package main
 
 import "github.com/shuvava/go-enrichable-client/client"
 
-func main() { 
-	// creates http client with with idle connections 
-	// and keepalives disabled.
-  c := client.DefaultHTTPClient()
-  resp, err := c.Get(url)	
+func main() {
+  var responseObject ResponseObject
+  // make GET request and deserialize response body 
+  // using default http client with with idle connections 
+  // and keepalives disabled.
+  err := client.Get(url, &responseObject)
   ...
 }
 ```
@@ -53,13 +54,13 @@ import (
 )
 
 func main() {
-  // create enriched client
-  richClient := client.DefaultClient()
+  ...
+	// create enriched client
+  c := client.DefaultClient()
   // add retry middleware
-  richClient.Use(middleware.Retry())
+  c.Use(middleware.Retry())
   // receive reference to http.Client
-  c := richClient.Client
-  resp, err := c.Get(url)	
+  err := c.Get(url, &responseObject)
   ...
 }
 ```

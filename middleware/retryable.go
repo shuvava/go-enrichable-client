@@ -209,25 +209,16 @@ func RetryWithConfig(config RetryConfig) client.MiddlewareFunc {
 			var shouldRetry bool
 			var attempt int
 			var doErr, checkErr error
-			req, err := FromRequest(request)
+			req, err := client.FromRequest(request)
 			if err != nil {
 				return nil, err
 			}
 			for i := 0; ; i++ {
 				attempt++
 				// Always rewind the http body when non-nil.
-				if req.body != nil {
-					body, err := req.body()
-					if err != nil {
-						c.CloseIdleConnections()
-						return resp, err
-					}
-
-					if c, ok := body.(io.ReadCloser); ok {
-						req.Body = c
-					} else {
-						req.Body = ioutil.NopCloser(body)
-					}
+				if err := req.RewindBody(); err != nil {
+					c.CloseIdleConnections()
+					return resp, err
 				}
 
 				if config.RequestHook != nil {
