@@ -63,7 +63,7 @@ func (c *Client) Get(url string, response interface{}) error {
 		return err
 	}
 
-	return readResponse(resp, &response)
+	return ReadResponse(resp, &response)
 }
 
 // Get is a shortcut for doing a GET request without making a new client.
@@ -71,9 +71,8 @@ func Get(url string, response interface{}) error {
 	return defaultClient.Get(url, &response)
 }
 
-// Post is a convenience method for doing simple POST requests.
-func (c *Client) Post(url string, body interface{}, response interface{}) error {
-	req, err := NewHTTPRequest("POST", url, body)
+func (c *Client) sendRestRequest(method, url string, body interface{}, response interface{}) error {
+	req, err := NewHTTPRequest(method, url, body)
 	if err != nil {
 		return err
 	}
@@ -82,12 +81,37 @@ func (c *Client) Post(url string, body interface{}, response interface{}) error 
 		return err
 	}
 
-	return readResponse(resp, &response)
+	return ReadResponse(resp, &response)
+}
+
+// Post is a convenience method for doing simple POST requests.
+func (c *Client) Post(url string, body interface{}, response interface{}) error {
+	return c.sendRestRequest("POST", url, body, &response)
 }
 
 // Post is a shortcut for doing a POST request without making a new client.
 func Post(url string, body interface{}, response interface{}) error {
 	return defaultClient.Post(url, body, &response)
+}
+
+// Put is a convenience method for doing simple PUT requests.
+func (c *Client) Put(url string, body interface{}, response interface{}) error {
+	return c.sendRestRequest("PUT", url, body, &response)
+}
+
+// Put is a shortcut for doing a PUT request without making a new client.
+func Put(url string, body interface{}, response interface{}) error {
+	return defaultClient.Put(url, body, &response)
+}
+
+// Delete is a convenience method for doing simple DELETE requests.
+func (c *Client) Delete(url string, body interface{}, response interface{}) error {
+	return c.sendRestRequest("DELETE", url, body, &response)
+}
+
+// Delete is a shortcut for doing a DELETE request without making a new client.
+func Delete(url string, body interface{}, response interface{}) error {
+	return defaultClient.Delete(url, body, &response)
 }
 
 // RoundTrip executes a single HTTP transaction, returning a Response for the provided Request
@@ -103,7 +127,8 @@ func applyMiddleware(c *http.Client, h Responder, middleware ...MiddlewareFunc) 
 	return h
 }
 
-func assertStatusCode(resp *http.Response) error {
+// AssertStatusCode verify if response status code is successful
+func AssertStatusCode(resp *http.Response) error {
 	if resp == nil {
 		return nil
 	}
@@ -115,8 +140,9 @@ func assertStatusCode(resp *http.Response) error {
 	return fmt.Errorf("unexpected HTTP status %s", resp.Status)
 }
 
-func readResponse(resp *http.Response, response interface{}) error {
-	if err := assertStatusCode(resp); err != nil {
+// ReadResponse read JSON response and return deserialized object
+func ReadResponse(resp *http.Response, response interface{}) error {
+	if err := AssertStatusCode(resp); err != nil {
 		return err
 	}
 	defer resp.Body.Close()
