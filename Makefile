@@ -67,7 +67,6 @@ pkg: release ## Creates the tarball package
 
 test: dl-modules ## Runs the Go unit tests with -short
 		@echo "+ $@"
-		go test -short -v -race $(GO_SRC)
 		go test -short $(GO_TEST_FLAGS) $(GO_SRC)
 
 clean: ## Removes all build and test output
