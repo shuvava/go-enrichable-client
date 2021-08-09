@@ -33,11 +33,42 @@ func main() {
 }
 ```
 
+## Creating custom middleware
+
+```go
+package main
+
+import (
+  "net/http"
+
+  "github.com/shuvava/go-enrichable-client/client"
+  "github.com/shuvava/go-enrichable-client/middleware"
+)
+
+func main() {
+  // create enriched client
+  c := client.DefaultClient()
+  // add custom middleware
+  c.Use(
+  func(c *http.Client, next client.Responder) client.Responder {
+    return func(request *http.Request) (*http.Response, error) {
+      // logic before doing request    
+      res, err:= next(request)
+      // logic after doing request
+      return res, err
+    }
+  })
+  ...
+}
+
+```
+
 ## Middleware 
 
-|  Name  | Description             |
-|:------:|:-----------------------:|
-| Retry  | add retry functionality |
+|  Name  | Description                                   |
+|:------:|:----------------------------------------------|
+| Retry  | add retry functionality                       |
+| OAuth  | add bearer authorization token to all request |
 
 ### Retry middleware
 
@@ -61,6 +92,36 @@ func main() {
   c.Use(middleware.Retry())
   // receive reference to http.Client
   err := c.Get(url, &responseObject)
+  ...
+}
+```
+
+#### Example usage oauth client
+
+```go
+package main
+
+import (
+  "fmt"
+
+  "github.com/shuvava/go-enrichable-client/client"
+  "github.com/shuvava/go-enrichable-client/middleware"
+)
+
+func main() {
+  ...
+	// create enriched client
+  c := client.DefaultClient()
+  // add oauth middleware
+  tenant := "00000000-0000-0000-0000-000000000000"
+  uri := fmt.Sprintf("https://login.microsoftonline.com/%s/oauth2/v2.0/token", tenant)
+  oauthConifg := middleware.OAuthConfig{
+    AuthServerURL: uri,
+    ClientID:      "00000000-0000-0000-0000-000000000000",
+    ClientSecret:  "some secret",
+    Scope:         "api://00000000-0000-0000-0000-000000000000/.default",
+  }
+  c.Use(middleware.OAuth(oauthConifg))
   ...
 }
 ```
