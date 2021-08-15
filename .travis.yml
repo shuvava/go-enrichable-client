@@ -25,4 +25,8 @@ script:
   - make test
   - $HOME/gopath/bin/goveralls -coverprofile=coverage.out -service=travis-ci -repotoken $COVERALLS_TOKEN
   - cd examples/simple-client && go build -o simple_client
+  - cd ../..
   - cd examples/client-with-oauth && go build -o client-with-oauth
+  - cd ../..
+  - cd examples/client-with-breaker && go build -o client-with-breaker
+  - cd ../..
