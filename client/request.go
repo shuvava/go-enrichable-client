@@ -125,13 +125,13 @@ func getBodyReaderAndContentLength(rawBody interface{}) (ReaderFunc, int64, erro
 	return bodyReader, contentLength, nil
 }
 
-func getBodyReaderAndRequest(method, url string, rawBody interface{}) (*http.Request, ReaderFunc, error) {
+func getBodyReaderAndRequest(ctx context.Context, method, url string, rawBody interface{}) (*http.Request, ReaderFunc, error) {
 	bodyReader, contentLength, err := getBodyReaderAndContentLength(rawBody)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	httpReq, err := http.NewRequest(method, url, nil)
+	httpReq, err := http.NewRequestWithContext(ctx, method, url, nil)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -176,8 +176,8 @@ func FromRequest(r *http.Request) (*Request, error) {
 }
 
 // NewHTTPRequest creates new http.Request with default header
-func NewHTTPRequest(method, url string, rawBody interface{}) (*http.Request, error) {
-	httpReq, bodyReader, err := getBodyReaderAndRequest(method, url, rawBody)
+func NewHTTPRequest(ctx context.Context, method, url string, rawBody interface{}) (*http.Request, error) {
+	httpReq, bodyReader, err := getBodyReaderAndRequest(ctx, method, url, rawBody)
 	if err != nil {
 		return nil, err
 	}
@@ -189,8 +189,8 @@ func NewHTTPRequest(method, url string, rawBody interface{}) (*http.Request, err
 }
 
 // NewRequest creates a new wrapped request.
-func NewRequest(method, url string, rawBody interface{}) (*Request, error) {
-	httpReq, bodyReader, err := getBodyReaderAndRequest(method, url, rawBody)
+func NewRequest(ctx context.Context, method, url string, rawBody interface{}) (*Request, error) {
+	httpReq, bodyReader, err := getBodyReaderAndRequest(ctx, method, url, rawBody)
 	if err != nil {
 		return nil, err
 	}

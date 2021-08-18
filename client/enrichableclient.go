@@ -1,6 +1,7 @@
 package client
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -71,8 +72,8 @@ func Get(url string, response interface{}) error {
 	return defaultClient.Get(url, &response)
 }
 
-func (c *Client) sendRestRequest(method, url string, body interface{}, response interface{}) error {
-	req, err := NewHTTPRequest(method, url, body)
+func (c *Client) sendRestRequest(ctx context.Context, method, url string, body interface{}, response interface{}) error {
+	req, err := NewHTTPRequest(ctx, method, url, body)
 	if err != nil {
 		return err
 	}
@@ -84,9 +85,19 @@ func (c *Client) sendRestRequest(method, url string, body interface{}, response 
 	return ReadResponse(resp, &response)
 }
 
+// PostWithContext is a convenience method for doing simple POST requests.
+func (c *Client) PostWithContext(ctx context.Context, url string, body interface{}, response interface{}) error {
+	return c.sendRestRequest(ctx, "POST", url, body, &response)
+}
+
 // Post is a convenience method for doing simple POST requests.
 func (c *Client) Post(url string, body interface{}, response interface{}) error {
-	return c.sendRestRequest("POST", url, body, &response)
+	return c.sendRestRequest(context.Background(), "POST", url, body, &response)
+}
+
+// PostWithContext is a shortcut for doing a POST request without making a new client.
+func PostWithContext(ctx context.Context, url string, body interface{}, response interface{}) error {
+	return defaultClient.PostWithContext(ctx, url, body, &response)
 }
 
 // Post is a shortcut for doing a POST request without making a new client.
@@ -94,9 +105,19 @@ func Post(url string, body interface{}, response interface{}) error {
 	return defaultClient.Post(url, body, &response)
 }
 
+// PutWithContext is a convenience method for doing simple PUT requests.
+func (c *Client) PutWithContext(ctx context.Context, url string, body interface{}, response interface{}) error {
+	return c.sendRestRequest(ctx, "PUT", url, body, &response)
+}
+
 // Put is a convenience method for doing simple PUT requests.
 func (c *Client) Put(url string, body interface{}, response interface{}) error {
-	return c.sendRestRequest("PUT", url, body, &response)
+	return c.sendRestRequest(context.Background(), "PUT", url, body, &response)
+}
+
+// PutWithContext is a shortcut for doing a PUT request without making a new client.
+func PutWithContext(ctx context.Context, url string, body interface{}, response interface{}) error {
+	return defaultClient.PutWithContext(ctx, url, body, &response)
 }
 
 // Put is a shortcut for doing a PUT request without making a new client.
@@ -104,9 +125,19 @@ func Put(url string, body interface{}, response interface{}) error {
 	return defaultClient.Put(url, body, &response)
 }
 
+// DeleteWithContext is a convenience method for doing simple DELETE requests.
+func (c *Client) DeleteWithContext(ctx context.Context, url string, body interface{}, response interface{}) error {
+	return c.sendRestRequest(ctx, "DELETE", url, body, &response)
+}
+
 // Delete is a convenience method for doing simple DELETE requests.
 func (c *Client) Delete(url string, body interface{}, response interface{}) error {
-	return c.sendRestRequest("DELETE", url, body, &response)
+	return c.sendRestRequest(context.Background(), "DELETE", url, body, &response)
+}
+
+// DeleteWithContext is a shortcut for doing a DELETE request without making a new client.
+func DeleteWithContext(ctx context.Context, url string, body interface{}, response interface{}) error {
+	return defaultClient.DeleteWithContext(ctx, url, body, &response)
 }
 
 // Delete is a shortcut for doing a DELETE request without making a new client.

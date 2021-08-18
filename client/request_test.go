@@ -2,6 +2,7 @@ package client
 
 import (
 	"bytes"
+	"context"
 	"net/http"
 	"testing"
 )
@@ -10,20 +11,20 @@ func TestRequest(t *testing.T) {
 	createRequest := func(t testing.TB) *Request {
 		t.Helper()
 		body := bytes.NewReader([]byte("yo"))
-		req, err := NewRequest("GET", "/", body)
+		req, err := NewRequest(context.Background(), "GET", "/", body)
 		if err != nil {
 			t.Fatalf("err: %v", err)
 		}
 		return req
 	}
 	t.Run("Fails on invalid request", func(t *testing.T) {
-		_, err := NewRequest("GET", "://foo", nil)
+		_, err := NewRequest(context.Background(), "GET", "://foo", nil)
 		if err == nil {
 			t.Fatalf("should error")
 		}
 	})
 	t.Run("Works with no request body", func(t *testing.T) {
-		_, err := NewRequest("GET", "https://foo", nil)
+		_, err := NewRequest(context.Background(), "GET", "https://foo", nil)
 		if err != nil {
 			t.Fatalf("err: %v", err)
 		}
