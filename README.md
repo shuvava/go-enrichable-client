@@ -65,11 +65,12 @@ func main() {
 
 ## Middleware 
 
-|  Name           | Description                                   |
-|:---------------:|:----------------------------------------------|
-| Retry           | add retry functionality                       |
-| OAuth           | add bearer authorization token to all request |
-| CircuitBreaker  | add Circuit Breaker to all request            |
+|      Name      | Description                                   |
+|:--------------:|:----------------------------------------------|
+|     Retry      | add retry functionality                       |
+|     OAuth      | add bearer authorization token to all request |
+| CircuitBreaker | add Circuit Breaker to all request            |
+|   UserAgent    | add User-Agent header to all requests         |
 
 ### Retry middleware
 
@@ -183,8 +184,6 @@ on the change of the state or at the closed-state intervals.
 package main
 
 import (
-  "fmt"
-
   "github.com/shuvava/go-enrichable-client/client"
   "github.com/shuvava/go-enrichable-client/middleware"
 )
@@ -195,6 +194,30 @@ func main() {
   c := client.DefaultClient()
   // add circuit breaker middleware
   c.Use(middleware.CircuitBreaker(middleware.CircuitBreakerSettings{}))
+  ...
+}
+```
+
+### UserAgent middleware
+
+UserAgent is a middleware that add the user agent string into request http.Header.
+
+#### Example usage UserAgent middleware
+
+```go
+package main
+
+import (
+  "github.com/shuvava/go-enrichable-client/client"
+  "github.com/shuvava/go-enrichable-client/middleware"
+)
+
+func main() {
+  ...
+  // create enriched http client
+  c := client.DefaultClient()
+  // add user-agent middleware
+  c.Use(middleware.UserAgent(middleware.UserAgentConfig{App: "app-name", Version: "1.0.0"}))
   ...
 }
 ```
