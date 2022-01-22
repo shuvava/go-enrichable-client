@@ -21,16 +21,6 @@ type UserAgentConfig struct {
 
 // UserAgent is a middleware that parses the user agent string into http.Header.
 func UserAgent(cfg UserAgentConfig) client.MiddlewareFunc {
-	return UserAgentWithClient(cfg, nil)
-}
-
-// UserAgentWithClient is a middleware that parses the user agent string into http.Header.
-func UserAgentWithClient(cfg UserAgentConfig, cl *http.Client) client.MiddlewareFunc {
-	if cl == nil {
-		// create enriched http client
-		clnt := client.DefaultClient()
-		cl = clnt.Client
-	}
 	userAgent := fmt.Sprintf("%s/%s", cfg.App, cfg.Version)
 	return func(c *http.Client, next client.Responder) client.Responder {
 		return func(request *http.Request) (*http.Response, error) {
