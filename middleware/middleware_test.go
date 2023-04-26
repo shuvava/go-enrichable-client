@@ -2,6 +2,7 @@ package middleware_test
 
 import (
 	"bytes"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"testing"
@@ -27,7 +28,7 @@ func assertResponse(t testing.TB, response *http.Response, err error, wantStatus
 		t.Errorf("got %q, wantStatusCode %q", response.StatusCode, wantStatusCode)
 	}
 	defer response.Body.Close()
-	body, err := ioutil.ReadAll(response.Body)
+	body, err := io.ReadAll(response.Body)
 	if err != nil {
 		t.Fatalf("did not expect an error but got one %v", err)
 	}

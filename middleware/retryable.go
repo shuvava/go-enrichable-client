@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"math"
 	"math/rand"
 	"net/http"
@@ -187,12 +186,12 @@ func LinearJitterBackoff(min, max time.Duration, attemptNum int, resp *http.Resp
 	return time.Duration(jitterMin * int64(attemptNum))
 }
 
-// Try to read the response body so we can reuse this connection.
+// Try to read the response body, so we can reuse this connection.
 func drainBody(body io.ReadCloser) {
 	defer func() {
 		_ = body.Close()
 	}()
-	_, _ = io.Copy(ioutil.Discard, io.LimitReader(body, respBodyReadLimit))
+	_, _ = io.Copy(io.Discard, io.LimitReader(body, respBodyReadLimit))
 }
 
 // Retry creates retry middleware with DefaultRetryConfig

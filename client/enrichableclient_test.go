@@ -2,7 +2,7 @@ package client
 
 import (
 	"bytes"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"testing"
 )
@@ -71,7 +71,7 @@ func assertResponse(t testing.TB, response *http.Response, err error) {
 		t.Errorf("got %q, wantStatusCode %q", response.StatusCode, wantStatusCode)
 	}
 	defer response.Body.Close()
-	body, err := ioutil.ReadAll(response.Body)
+	body, err := io.ReadAll(response.Body)
 	if err != nil {
 		t.Fatalf("did not expect an error but got one %v", err)
 	}
@@ -105,7 +105,7 @@ func createMock(url string, statusCode int, body string) *MockTransport {
 			return &http.Response{
 				StatusCode: statusCode,
 				// Send response to be tested
-				Body: ioutil.NopCloser(bytes.NewBufferString(body)),
+				Body: io.NopCloser(bytes.NewBufferString(body)),
 				// Must be set to non-nil value or it panics
 				Header: make(http.Header),
 			}, nil

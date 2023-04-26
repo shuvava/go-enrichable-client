@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 )
 
@@ -78,7 +77,7 @@ func getBodyReaderAndContentLength(rawBody interface{}) (ReaderFunc, int64, erro
 	// deal with it seeking so want it to match here instead of the
 	// io.ReadSeeker case.
 	case *bytes.Reader:
-		buf, err := ioutil.ReadAll(body)
+		buf, err := io.ReadAll(body)
 		if err != nil {
 			return nil, 0, err
 		}
@@ -91,14 +90,14 @@ func getBodyReaderAndContentLength(rawBody interface{}) (ReaderFunc, int64, erro
 		raw := body
 		bodyReader = func() (io.Reader, error) {
 			_, err := raw.Seek(0, 0)
-			return ioutil.NopCloser(raw), err
+			return io.NopCloser(raw), err
 		}
 		if lr, ok := raw.(LenReader); ok {
 			contentLength = int64(lr.Len())
 		}
 	// Read all in so we can reset
 	case io.Reader:
-		buf, err := ioutil.ReadAll(body)
+		buf, err := io.ReadAll(body)
 		if err != nil {
 			return nil, 0, err
 		}
@@ -154,7 +153,7 @@ func RewindBody(r *http.Request, body ReaderFunc) error {
 		if c, ok := b.(io.ReadCloser); ok {
 			r.Body = c
 		} else {
-			r.Body = ioutil.NopCloser(b)
+			r.Body = io.NopCloser(b)
 		}
 	}
 	return nil
@@ -165,7 +164,7 @@ func (r *Request) RewindBody() error {
 	return RewindBody(r.Request, r.body)
 }
 
-// FromRequest wraps an http.Request in a retryablehttp.Request
+// FromRequest wraps a http.Request in a retryablehttp.Request
 func FromRequest(r *http.Request) (*Request, error) {
 	bodyReader, _, err := getBodyReaderAndContentLength(r.Body)
 	if err != nil {
